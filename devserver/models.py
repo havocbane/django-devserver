@@ -1,10 +1,9 @@
-import django
-from django.core import exceptions
-from django.core.exceptions import ImproperlyConfigured
-
-from devserver.logger import GenericLogger
 import logging
 
+import django
+from django.core import exceptions
+
+from devserver.logger import GenericLogger
 
 MODULES = []
 
@@ -46,17 +45,17 @@ def load_modules():
         try:
             name, class_name = path.rsplit('.', 1)
         except ValueError:
-            raise exceptions.ImproperlyConfigured, '%s isn\'t a devserver module' % path
+            raise exceptions.ImproperlyConfigured("{0} isn't a devserver module".format(path))
 
         try:
             module = __import__(name, {}, {}, [''])
-        except ImportError, e:
-            raise exceptions.ImproperlyConfigured, 'Error importing devserver module %s: "%s"' % (name, e)
+        except ImportError as e:
+            raise exceptions.ImproperlyConfigured('Error importing devserver module {0}: "{1}"'.format(name, e))
 
         try:
             cls = getattr(module, class_name)
         except AttributeError:
-            raise exceptions.ImproperlyConfigured, 'Error importing devserver module "%s" does not define a "%s" class' % (name, class_name)
+            raise exceptions.ImproperlyConfigured('Error importing devserver module "{0}" does not define a "{1}" class'.format(name, class_name))
 
         try:
             instance = cls(GenericLogger(cls))
