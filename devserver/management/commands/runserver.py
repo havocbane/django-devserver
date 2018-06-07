@@ -9,7 +9,7 @@ import sys
 import imp
 import errno
 import socket
-import SocketServer
+import socketserver
 from optparse import make_option
 
 from devserver.handlers import DevServerHandler
@@ -26,7 +26,7 @@ STATICFILES_APPS = ('django.contrib.staticfiles', 'staticfiles')
 
 
 def null_technical_500_response(request, exc_type, exc_value, tb):
-    raise exc_type, exc_value, tb
+    raise exc_type(exc_value).with_traceback(tb)
 
 
 def run(addr, port, wsgi_handler, mixin=None, ipv6=False):
@@ -141,7 +141,7 @@ class Command(BaseCommand):
         if use_werkzeug:
             try:
                 from werkzeug import run_simple, DebuggedApplication
-            except ImportError, e:
+            except ImportError as e:
                 self.stderr.write("WARNING: Unable to initialize werkzeug: %s\n" % e)
                 use_werkzeug = False
             else:
@@ -184,9 +184,9 @@ class Command(BaseCommand):
                     raise
 
         if options['use_forked']:
-            mixin = SocketServer.ForkingMixIn
+            mixin = socketserver.ForkingMixIn
         else:
-            mixin = SocketServer.ThreadingMixIn
+            mixin = socketserver.ThreadingMixIn
 
         middleware = getattr(settings, 'DEVSERVER_WSGI_MIDDLEWARE', [])
         for middleware in middleware:
@@ -205,7 +205,7 @@ class Command(BaseCommand):
             else:
                 run(self.addr, int(self.port), app, mixin, ipv6=self.use_ipv6)
 
-        except wsgi_server_exc_cls, e:
+        except wsgi_server_exc_cls as e:
             # Use helpful error messages instead of ugly tracebacks.
             ERRORS = {
                 errno.EACCES: "You don't have permission to access that port.",
